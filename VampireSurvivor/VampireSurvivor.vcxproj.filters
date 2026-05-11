@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ECS">
+      <UniqueIdentifier>{A1111111-0000-0000-0000-000000000001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Jobs">
+      <UniqueIdentifier>{A1111111-0000-0000-0000-000000000002}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{A1111111-0000-0000-0000-000000000003}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{A1111111-0000-0000-0000-000000000004}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{A1111111-0000-0000-0000-000000000005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Boilerplate">
+      <UniqueIdentifier>{A1111111-0000-0000-0000-000000000006}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClInclude Include="src\ecs\Components.h">   <Filter>ECS</Filter> </ClInclude>
+    <ClInclude Include="src\ecs\World.h">         <Filter>ECS</Filter> </ClInclude>
+    <ClInclude Include="src\ecs\SystemGraph.h">   <Filter>ECS</Filter> </ClInclude>
+    <ClInclude Include="src\jobs\ThreadPool.h">   <Filter>Jobs</Filter> </ClInclude>
+    <ClInclude Include="src\jobs\TaskGraph.h">    <Filter>Jobs</Filter> </ClInclude>
+    <ClInclude Include="src\rendering\InstancedRenderer.h"> <Filter>Rendering</Filter> </ClInclude>
+    <ClInclude Include="src\game\Systems.h">      <Filter>Game</Filter> </ClInclude>
+    <ClInclude Include="src\game\GameApp.h">      <Filter>Game</Filter> </ClInclude>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClCompile Include="src\ecs\SystemGraph.cpp">              <Filter>ECS</Filter> </ClCompile>
+    <ClCompile Include="src\jobs\ThreadPool.cpp">              <Filter>Jobs</Filter> </ClCompile>
+    <ClCompile Include="src\jobs\TaskGraph.cpp">               <Filter>Jobs</Filter> </ClCompile>
+    <ClCompile Include="src\rendering\InstancedRenderer.cpp">  <Filter>Rendering</Filter> </ClCompile>
+    <ClCompile Include="src\game\Systems.cpp">                 <Filter>Game</Filter> </ClCompile>
+    <ClCompile Include="src\game\GameApp.cpp">                 <Filter>Game</Filter> </ClCompile>
+    <ClCompile Include="src\Main.cpp">                         <Filter>Game</Filter> </ClCompile>
+    <ClCompile Include="..\HelloTriangle\DXSample.cpp">        <Filter>Boilerplate</Filter> </ClCompile>
+    <ClCompile Include="..\HelloTriangle\Win32Application.cpp"> <Filter>Boilerplate</Filter> </ClCompile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <CustomBuild Include="shaders\instance.hlsl">    <Filter>Shaders</Filter> </CustomBuild>
+    <CustomBuild Include="shaders\gpu_cull_cs.hlsl"> <Filter>Shaders</Filter> </CustomBuild>
+  </ItemGroup>
+</Project>
