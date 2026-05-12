@@ -61,7 +61,9 @@ static void sEnemyAI(World& w, float dt, GameCtx& ctx) {
     auto view = w.reg.view<Enemy, Position, Velocity>();
     std::vector<entt::entity> enemies;
     enemies.reserve(4096);
-    for (auto e : view) enemies.push_back(e);
+    view.each([&](entt::entity e, Enemy&, Position&, Velocity&) {
+        enemies.push_back(e);
+    });
     ctx.enemyCount = static_cast<int>(enemies.size());
 
     if (enemies.empty()) return;
@@ -119,11 +121,10 @@ static void sWeapon(World& w, float dt, GameCtx& ctx) {
     // Find nearest enemy
     entt::entity nearest = entt::null;
     float minDist2 = 1e9f;
-    for (auto e : reg.view<Enemy, Position>()) {
-        auto& ep = reg.get<Position>(e);
+    reg.view<Enemy, Position>().each([&](entt::entity e, Enemy&, const Position& ep) {
         float d2 = (ep.x - pp.x) * (ep.x - pp.x) + (ep.z - pp.z) * (ep.z - pp.z);
         if (d2 < minDist2) { minDist2 = d2; nearest = e; }
-    }
+    });
 
     if (nearest == entt::null || minDist2 > 400.f) return; // 20-unit range
 
@@ -146,11 +147,10 @@ static void sProjectile(World& w, float dt) {
     auto& reg = w.reg;
     std::vector<entt::entity> dead;
 
-    for (auto e : reg.view<Projectile>()) {
-        auto& pr = reg.get<Projectile>(e);
+    reg.view<Projectile>().each([&](entt::entity e, Projectile& pr) {
         pr.lifetime -= dt;
         if (pr.lifetime <= 0.f) dead.push_back(e);
-    }
+    });
     for (auto e : dead) reg.destroy(e);
 }
 
@@ -164,31 +164,24 @@ static void sCollision(World& w, float dt, GameCtx& ctx) {
     std::vector<entt::entity> deadProj;
 
     // Projectile–Enemy collision
-    for (auto proj : reg.view<Projectile, Position>()) {
-        auto& projPos = reg.get<Position>(proj);
-        auto& projDmg = reg.get<Projectile>(proj).damage;
-        bool  hit     = false;
-
-        for (auto enemy : reg.view<Enemy, Position, Health>()) {
-            auto& ep = reg.get<Position>(enemy);
+    reg.view<Projectile, Position>().each([&](entt::entity proj, Projectile& pr, const Position& projPos) {
+        bool hit = false;
+        reg.view<Enemy, Position, Health>().each([&](entt::entity enemy, Enemy&, const Position& ep, Health& eh) {
+            if (hit) return; // already struck one enemy this frame
             float d2 = (projPos.x - ep.x) * (projPos.x - ep.x)
                      + (projPos.z - ep.z) * (projPos.z - ep.z);
-            if (d2 < 0.8f * 0.8f) { // combined radii
-                auto& eh = reg.get<Health>(enemy);
-                eh.hp -= projDmg;
+            if (d2 < 0.8f * 0.8f) {
+                eh.hp -= pr.damage;
                 if (eh.hp <= 0.f) deadEnemies.push_back(enemy);
                 hit = true;
-                break;
             }
-        }
+        });
         if (hit) deadProj.push_back(proj);
-    }
+    });
 
     // Enemy–Player collision (damage player, bounce enemy)
-    for (auto enemy : reg.view<Enemy, Position>()) {
-        auto& ep   = reg.get<Position>(enemy);
-        auto& en   = reg.get<Enemy>(enemy);
-        float d2   = (ep.x - pp.x) * (ep.x - pp.x) + (ep.z - pp.z) * (ep.z - pp.z);
+    reg.view<Enemy, Position>().each([&](entt::entity, Enemy& en, const Position& ep) {
+        float d2 = (ep.x - pp.x) * (ep.x - pp.x) + (ep.z - pp.z) * (ep.z - pp.z);
         if (d2 < 1.0f * 1.0f) {
             en.attackTimer -= dt;
             if (en.attackTimer <= 0.f) {
@@ -196,7 +189,7 @@ static void sCollision(World& w, float dt, GameCtx& ctx) {
                 en.attackTimer = 1.f;
             }
         }
-    }
+    });
 
     // Drop XP orbs for killed enemies
     for (auto e : deadEnemies) {
@@ -221,13 +214,11 @@ static void sXPOrb(World& w, float dt, GameCtx& ctx) {
     const float pickupR2 = 2.5f * 2.5f;
 
     std::vector<entt::entity> collected;
-    for (auto e : reg.view<XPOrb, Position>()) {
-        auto& op = reg.get<Position>(e);
-        auto& xp = reg.get<XPOrb>(e);
+    reg.view<XPOrb, Position>().each([&](entt::entity e, XPOrb& xp, const Position& op) {
         xp.lifetime -= dt;
         float d2 = (op.x - pp.x) * (op.x - pp.x) + (op.z - pp.z) * (op.z - pp.z);
         if (d2 < pickupR2 || xp.lifetime <= 0.f) collected.push_back(e);
-    }
+    });
     for (auto e : collected) {
         if (!reg.valid(e)) continue;
         if (w.reg.any_of<XPOrb>(e)) {
@@ -293,10 +284,10 @@ static void sRenderSync(World& w, float dt, GameCtx& ctx) {
                w.reg.get<RenderCircle>(ctx.player));
     }
 
-    for (auto e : w.reg.view<RenderCircle, Position>()) {
-        if (e == ctx.player) continue;
-        Append(w.reg.get<Position>(e), w.reg.get<RenderCircle>(e));
-    }
+    w.reg.view<RenderCircle, Position>().each([&](entt::entity e, RenderCircle& rc, const Position& pos) {
+        if (e == ctx.player) return;
+        Append(pos, rc);
+    });
 
     ctx.entityCount = static_cast<int>(ctx.instances.size());
 }
