@@ -235,32 +235,38 @@ static void sXPOrb(World& w, float dt, GameCtx& ctx) {
 }
 
 static void sSpawn(World& w, float dt, GameCtx& ctx) {
+    auto& reg = w.reg;
+    const Position& pp = (ctx.player != entt::null)
+        ? reg.get<Position>(ctx.player) : Position{};
+
+    // Helper that creates one enemy; returns false when cap is reached.
+    auto spawnOne = [&]() -> bool {
+        if (static_cast<int>(reg.view<Enemy>().size()) >= ctx.maxEnemies) return false;
+        const float spawnR = 40.f;
+        float angle = randf(0.f, 6.2832f);
+        auto e = reg.create();
+        reg.emplace<Position>(e, Position{ pp.x + spawnR * std::cosf(angle),
+                                           pp.z + spawnR * std::sinf(angle) });
+        reg.emplace<Velocity>(e);
+        reg.emplace<Enemy>(e, Enemy{ randf(1.5f, 3.5f), 10.f, 5.f, 0.f });
+        reg.emplace<Health>(e, Health{ 50.f, 50.f });
+        reg.emplace<RenderCircle>(e, RenderCircle{ {0.9f, 0.2f, 0.2f, 1.f}, 0.5f });
+        return true;
+    };
+
+    // Batch spawn requested from UI (consumed in one frame)
+    if (ctx.batchSpawnRequest > 0) {
+        for (int i = 0; i < ctx.batchSpawnRequest; ++i)
+            if (!spawnOne()) break;
+        ctx.batchSpawnRequest = 0;
+    }
+
+    // Normal timed spawn
     ctx.spawnTimer -= dt;
     if (ctx.spawnTimer > 0.f) return;
-
-    int cur = static_cast<int>(w.reg.view<Enemy>().size());
-    if (cur >= ctx.maxEnemies) { ctx.spawnTimer = 0.1f; return; }
-
-    ctx.spawnTimer = ctx.spawnInterval;
-    // Shrink interval over time (more pressure)
-    ctx.spawnInterval = std::max(0.1f, ctx.spawnInterval - 0.001f);
-
-    // Spawn in a ring around the player
-    const auto& pp = (ctx.player != entt::null)
-        ? w.reg.get<Position>(ctx.player)
-        : Position{};
-
-    const float spawnR = 40.f;
-    float angle = randf(0.f, 6.2832f);
-    float ex    = pp.x + spawnR * std::cosf(angle);
-    float ez    = pp.z + spawnR * std::sinf(angle);
-
-    auto e = w.reg.create();
-    w.reg.emplace<Position>(e, Position{ ex, ez });
-    w.reg.emplace<Velocity>(e);
-    w.reg.emplace<Enemy>(e, Enemy{ randf(1.5f, 3.5f), 10.f, 5.f, 0.f });
-    w.reg.emplace<Health>(e, Health{ 50.f, 50.f });
-    w.reg.emplace<RenderCircle>(e, RenderCircle{ {0.9f, 0.2f, 0.2f, 1.f}, 0.5f });
+    if (!spawnOne()) { ctx.spawnTimer = 0.1f; return; }
+    ctx.spawnTimer    = ctx.spawnInterval;
+    ctx.spawnInterval = std::max(0.05f, ctx.spawnInterval - 0.001f);
 }
 
 // Gathers all renderable entities into ctx.instances for the GPU upload.

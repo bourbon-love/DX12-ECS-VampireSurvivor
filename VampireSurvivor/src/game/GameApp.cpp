@@ -221,7 +221,7 @@ void GameApp::OnUpdate() {
     ImGui::NewFrame();
 
     ImGui::SetNextWindowPos({ 10, 10 }, ImGuiCond_Always);
-    ImGui::SetNextWindowSize({ 220, 0 }, ImGuiCond_Always);
+    ImGui::SetNextWindowSize({ 260, 0 }, ImGuiCond_Always);
     ImGui::Begin("Stats", nullptr,
         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
@@ -247,8 +247,19 @@ void GameApp::OnUpdate() {
     }
     ImGui::Separator();
 
-    ImGui::SliderInt("Max enemies", &m_ctx.maxEnemies, 100, 5000);
+    ImGui::SliderInt("Max enemies",    &m_ctx.maxEnemies,    100,  5000);
+    ImGui::SliderFloat("Spawn /s", &m_ctx.spawnInterval, 0.02f, 2.0f, "%.2f s");
     ImGui::Separator();
+
+    ImGui::Text("Batch spawn:");
+    ImGui::SameLine();
+    if (ImGui::Button("+100"))  m_ctx.batchSpawnRequest = 100;
+    ImGui::SameLine();
+    if (ImGui::Button("+500"))  m_ctx.batchSpawnRequest = 500;
+    ImGui::SameLine();
+    if (ImGui::Button("Fill"))  m_ctx.batchSpawnRequest = m_ctx.maxEnemies;
+    ImGui::Separator();
+
     ImGui::Checkbox("GPU Culling", &m_renderer->gpuCullingEnabled);
 
     ImGui::End();

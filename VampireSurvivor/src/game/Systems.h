@@ -14,9 +14,10 @@ struct GameCtx {
     entt::entity              player   = entt::null;
 
     // Spawn state
-    float spawnTimer    = 0.f;
-    float spawnInterval = 0.8f;   // seconds between spawns (decreases over time)
-    int   maxEnemies    = 5000;
+    float spawnTimer         = 0.f;
+    float spawnInterval      = 0.8f;  // seconds between spawns (decreases over time)
+    int   maxEnemies         = 5000;
+    int   batchSpawnRequest  = 0;     // set by UI; consumed in one frame by sSpawn
 
     // Gathered each frame by RenderSyncSystem
     std::vector<InstanceData> instances;
