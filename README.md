@@ -2,6 +2,8 @@
 
 A personal research project exploring **EnTT ECS**, **multi-threading**, and **DirectX 12 rendering performance** through a Vampire Survivors-style top-down game demo.
 
+![Screenshot](ECS_study.png)
+
 > Still actively being developed. New systems and optimisations are added regularly.
 
 ---
